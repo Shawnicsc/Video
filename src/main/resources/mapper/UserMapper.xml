@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.video.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.video.domain.User">
+            <id property="userId" column="UserID" jdbcType="INTEGER"/>
+            <result property="userName" column="Username" jdbcType="VARCHAR"/>
+            <result property="password" column="Password" jdbcType="VARCHAR"/>
+            <result property="creationTime" column="CreationTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="IsDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        UserID,Username,Password,
+        CreationTime,IsDelete
+    </sql>
+</mapper>
