@@ -60,6 +60,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video>
 
             keyFrame(saveName);
 
+            // 设置视频信息
             video.setTitle(title);
 
             video.setDescription(description);

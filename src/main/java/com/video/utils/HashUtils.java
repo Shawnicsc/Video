@@ -1,14 +1,15 @@
 package com.video.utils;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
+import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Author shawni
@@ -17,6 +18,10 @@ import java.io.File;
  * @Version 1.0
  */
 public class HashUtils {
+    static {
+        //在使用OpenCV前必须加载Core.NATIVE_LIBRARY_NAME类,否则会报错
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
     //D-Hash
     public static String calculateDHash(String imagePath) throws Exception {
         BufferedImage image = ImageIO.read(new File(imagePath));
@@ -97,18 +102,43 @@ public class HashUtils {
         }
         return hash.toString();
     }
+    public static double ImageHistogramComparison(String path1 , String path2) {
+        Mat src_1 = Imgcodecs.imread(path1);// 图片 1
+        Mat src_2 = Imgcodecs.imread(path2);// 图片 2
+
+        Mat hvs_1 = new Mat();
+        Mat hvs_2 = new Mat();
+        //图片转HSV
+        Imgproc.cvtColor(src_1, hvs_1, Imgproc.COLOR_BGR2HSV);
+        Imgproc.cvtColor(src_2, hvs_2, Imgproc.COLOR_BGR2HSV);
+
+        Mat hist_1 = new Mat();
+        Mat hist_2 = new Mat();
+
+        //直方图计算
+        Imgproc.calcHist(Stream.of(hvs_1).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_1, new MatOfInt(255), new MatOfFloat(0, 256));
+        Imgproc.calcHist(Stream.of(hvs_2).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_2, new MatOfInt(255), new MatOfFloat(0, 256));
+
+        //图片归一化
+        Core.normalize(hist_2, hist_2, 1, hist_2.rows(), Core.NORM_MINMAX, -1, new Mat());
+
+        //直方图比较
+        double b = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
+
+        System.out.println(b*100+"%");
+        return b;
+    }
+
     // 计算相似度的方法
     public static double calculateSimilarity(String hash1, String hash2) {
         // 计算汉明距离
         int hammingDistance = calculateHammingDistance(hash1, hash2);
 
         // 假设哈希码长度相同，这里使用哈希码长度作为位数
-        int bitCount = hash1.length() * 4; // 一个十六进制字符代表4位二进制数
+        int bitCount = hash1.length() ; // 一个十六进制字符代表4位二进制数
 
         // 计算相似度
-        double similarity = 1 - ((double) hammingDistance / bitCount);
-
-        return similarity;
+        return ((double) (bitCount - hammingDistance) / bitCount);
     }
     // 计算汉明距离的方法
     private static int calculateHammingDistance(String hash1, String hash2) {
