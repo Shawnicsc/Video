@@ -8,6 +8,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -102,31 +104,65 @@ public class HashUtils {
         }
         return hash.toString();
     }
-    public static double ImageHistogramComparison(String path1 , String path2) {
-        Mat src_1 = Imgcodecs.imread(path1);// 图片 1
-        Mat src_2 = Imgcodecs.imread(path2);// 图片 2
+    // 计算结构相似性指数（SSIM）
+    public static double calculateSSIM(Mat image1, Mat image2) {
+        Mat image1Gray = new Mat();
+        Mat image2Gray = new Mat();
+        Imgproc.cvtColor(image1, image1Gray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(image2, image2Gray, Imgproc.COLOR_BGR2GRAY);
+        MatOfFloat ssimMat = new MatOfFloat();
+        Imgproc.matchTemplate(image1Gray, image2Gray, ssimMat, Imgproc.CV_COMP_CORREL);
+        Scalar ssimScalar = Core.mean(ssimMat);
+        return ssimScalar.val[0];
+    }
 
-        Mat hvs_1 = new Mat();
-        Mat hvs_2 = new Mat();
-        //图片转HSV
-        Imgproc.cvtColor(src_1, hvs_1, Imgproc.COLOR_BGR2HSV);
-        Imgproc.cvtColor(src_2, hvs_2, Imgproc.COLOR_BGR2HSV);
+    public static double calculateHistogram(Mat image1, Mat image2) {
+        // 计算直方图
+        Mat hist1 = calculateHistogram(image1);
+        Mat hist2 = calculateHistogram(image2);
 
-        Mat hist_1 = new Mat();
-        Mat hist_2 = new Mat();
+        // 计算相似度
+        final double similarity = Imgproc.compareHist(hist1, hist2, Imgproc.CV_COMP_CORREL);
+        return similarity;
+    }
 
-        //直方图计算
-        Imgproc.calcHist(Stream.of(hvs_1).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_1, new MatOfInt(255), new MatOfFloat(0, 256));
-        Imgproc.calcHist(Stream.of(hvs_2).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_2, new MatOfInt(255), new MatOfFloat(0, 256));
+    // 计算均方差（MSE）
+    public static double calculateMSE(Mat image1, Mat image2) {
+        Mat diff = new Mat();
+        Core.absdiff(image1, image2, diff);
+        Mat squaredDiff = new Mat();
+        Core.multiply(diff, diff, squaredDiff);
+        Scalar mseScalar = Core.mean(squaredDiff);
+        return mseScalar.val[0];
+    }
 
-        //图片归一化
-        Core.normalize(hist_2, hist_2, 1, hist_2.rows(), Core.NORM_MINMAX, -1, new Mat());
+    // 计算峰值信噪比（PSNR）
+    public static double calculatePSNR(Mat image1, Mat image2) {
+        Mat diff = new Mat();
+        Core.absdiff(image1, image2, diff);
+        Mat squaredDiff = new Mat();
+        Core.multiply(diff, diff, squaredDiff);
+        Scalar mseScalar = Core.mean(squaredDiff);
+        double mse = mseScalar.val[0];
+        double psnr = 10.0 * Math.log10(255.0 * 255.0 / mse);
+        return psnr;
+    }
 
-        //直方图比较
-        double b = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
 
-        System.out.println(b*100+"%");
-        return b;
+    private static Mat calculateHistogram(Mat image) {
+        Mat hist = new Mat();
+
+        // 设置直方图参数
+        MatOfInt histSize = new MatOfInt(256);
+        MatOfFloat ranges = new MatOfFloat(0, 256);
+        MatOfInt channels = new MatOfInt(0);
+        List<Mat> images = new ArrayList<>();
+        images.add(image);
+
+        // 计算直方图
+        Imgproc.calcHist(images, channels, new Mat(), hist, histSize, ranges);
+
+        return hist;
     }
 
     // 计算相似度的方法

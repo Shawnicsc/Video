@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.video.utils.HashUtils.*;
+
 class HashUtilsTest {
 
     @Test
@@ -88,30 +90,33 @@ class HashUtilsTest {
     @Test
     void imageHistogramComparison() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        String path1 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\bug.jpg";
-        String path2 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\Waiwai.jpg";
-        Mat src_1 = Imgcodecs.imread(path1);// 图片 1
-        Mat src_2 = Imgcodecs.imread(path2);// 图片 2
+        String path1 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\frame_0.jpg";
+        String path2 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\frame_20.jpg";
 
-        Mat hvs_1 = new Mat();
-        Mat hvs_2 = new Mat();
-        //图片转HSV
-        Imgproc.cvtColor(src_1, hvs_1, Imgproc.COLOR_BGR2HSV);
-        Imgproc.cvtColor(src_2, hvs_2, Imgproc.COLOR_BGR2HSV);
+        // 读取两张图像。准备比对的图片
+        Mat image1 = Imgcodecs.imread(path1);
+        Mat image2 = Imgcodecs.imread(path2);
 
-        Mat hist_1 = new Mat();
-        Mat hist_2 = new Mat();
 
-        //直方图计算
-        Imgproc.calcHist(Stream.of(hvs_1).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_1, new MatOfInt(255), new MatOfFloat(0, 256));
-        Imgproc.calcHist(Stream.of(hvs_2).collect(Collectors.toList()), new MatOfInt(0), new Mat(), hist_2, new MatOfInt(255), new MatOfFloat(0, 256));
+        // 将图片处理成一样大
+        Imgproc.resize(image1, image1, image2.size());
+        Imgproc.resize(image2, image2, image1.size());
 
-        //图片归一化
-        Core.normalize(hist_2, hist_2, 1, hist_2.rows(), Core.NORM_MINMAX, -1, new Mat());
+        // 计算均方差（MSE）
+        double mse = calculateMSE(image1, image2);
+        System.out.println("均方差（MSE）: " + mse);
 
-        //直方图比较
-        double b = Imgproc.compareHist(hist_1, hist_2, Imgproc.CV_COMP_CORREL);
+        // 计算结构相似性指数（SSIM）
+        double ssim = calculateSSIM(image1, image2);
+        System.out.println("结构相似性指数（SSIM）: " + ssim);
 
-        System.out.println(b*100+"%");
+        // 计算峰值信噪比（PSNR）
+        double psnr = calculatePSNR(image1, image2);
+        System.out.println("峰值信噪比（PSNR）: " + psnr);
+
+        // 计算直方图
+        final double similarity = calculateHistogram(image1, image2);
+        System.out.println("图片相似度(直方图): " + similarity);
+
     }
 }
