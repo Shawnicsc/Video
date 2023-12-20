@@ -6,15 +6,12 @@ import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * @Author shawni
+ * @Author Shawn i
  * @Description Hash算法比较
  * @Date 2023/11/24 10:32
  * @Version 1.0
@@ -24,6 +21,10 @@ public class HashUtils {
         //在使用OpenCV前必须加载Core.NATIVE_LIBRARY_NAME类,否则会报错
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
+
+    private HashUtils() {
+    }
+
     //D-Hash
     public static String calculateDHash(String imagePath) throws Exception {
         BufferedImage image = ImageIO.read(new File(imagePath));
@@ -90,7 +91,7 @@ public class HashUtils {
         int total = 0;
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                total += dct.get(y, x)[0];
+                total += (int) dct.get(y, x)[0];
             }
         }
         int avg = total / 64;
@@ -122,8 +123,7 @@ public class HashUtils {
         Mat hist2 = calculateHistogram(image2);
 
         // 计算相似度
-        final double similarity = Imgproc.compareHist(hist1, hist2, Imgproc.CV_COMP_CORREL);
-        return similarity;
+        return Imgproc.compareHist(hist1, hist2, Imgproc.CV_COMP_CORREL);
     }
 
     // 计算均方差（MSE）
@@ -144,8 +144,7 @@ public class HashUtils {
         Core.multiply(diff, diff, squaredDiff);
         Scalar mseScalar = Core.mean(squaredDiff);
         double mse = mseScalar.val[0];
-        double psnr = 10.0 * Math.log10(255.0 * 255.0 / mse);
-        return psnr;
+        return 10.0 * Math.log10(255.0 * 255.0 / mse);
     }
 
 

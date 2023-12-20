@@ -91,7 +91,7 @@ class HashUtilsTest {
     void imageHistogramComparison() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         String path1 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\frame_0.jpg";
-        String path2 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\frame_20.jpg";
+        String path2 = "E:\\Video\\src\\main\\resources\\static\\image\\274bbf218f5e52f23a9ddb47d9dd7adb\\bug.jpg";
 
         // 读取两张图像。准备比对的图片
         Mat image1 = Imgcodecs.imread(path1);
